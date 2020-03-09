@@ -6,7 +6,6 @@
 AMovingPlatform::AMovingPlatform()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	Speed = 5.0f;
 	SetMobility(EComponentMobility::Movable);
 }
 
@@ -16,8 +15,32 @@ void AMovingPlatform::Tick(float DeltaSeconds)
 
 	if (HasAuthority())
 	{
-		auto CurrentLoc = GetActorLocation();
-		CurrentLoc += FVector(Speed * DeltaSeconds, 0.f, 0.f);
-		SetActorLocation(CurrentLoc);
+		const auto CurrentLoc = GetActorLocation();
+		const auto DistTraveled = (WorldStartLocation - CurrentLoc).Size();
+		const auto TotalDistance = (WorldStartLocation - WorldTargetLocation).Size();
+
+		if (DistTraveled > TotalDistance)
+		{
+			const FVector Swap = WorldStartLocation;
+			WorldStartLocation = WorldTargetLocation;
+			WorldTargetLocation = Swap;
+		}
+
+		const auto DestDirection = (WorldTargetLocation - WorldStartLocation).GetSafeNormal();
+		SetActorLocation(CurrentLoc + DestDirection * Speed * DeltaSeconds);
+	}
+}
+
+void AMovingPlatform::BeginPlay()
+{
+	Super::BeginPlay();
+
+	WorldStartLocation = GetActorLocation();
+	WorldTargetLocation = ActorToWorld().TransformPosition(TargetLocation);
+	
+	if (HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
 	}
 }

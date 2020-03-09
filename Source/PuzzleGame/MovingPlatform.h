@@ -20,6 +20,17 @@ public:
 
 	void Tick(float DeltaSeconds) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Config)
-	float Speed;
+	UPROPERTY(EditAnywhere, Category=Config)
+	float Speed = 20.0f;
+
+	UPROPERTY(EditAnywhere, Category = Config, meta=(MakeEditWidget=true))
+	FVector TargetLocation;
+
+protected:
+
+	FVector WorldStartLocation;
+
+	FVector WorldTargetLocation;
+
+	void BeginPlay() override;
 };
